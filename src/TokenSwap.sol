@@ -7,6 +7,7 @@ import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 contract TokenSwap {
     using SafeTransferLib for TokenA;
     using SafeTransferLib for TokenB;
+
     // errors
     error TokenSwap__NotEnoughTokenA();
     error TokenSwap__NotEnoughTokenB();
@@ -16,7 +17,7 @@ contract TokenSwap {
     TokenA public tokenA;
     TokenB public tokenB;
     address public owner;
-    uint256 public exchangeRate; // Fixed exchange rate: Amount of Token B per Token A
+    uint256 public immutable exchangeRate; // Fixed exchange rate: Amount of Token B per Token A
 
     // events
     event TokenASwappedForTokenB(address swapper, uint256 amountA, uint256 amountB);
@@ -39,8 +40,10 @@ contract TokenSwap {
         if (tokenB.balanceOf(address(this)) < amountB) {
             revert TokenSwap__NotEnoughTokenB();
         }
-        tokenA.safeTransferFrom(msg.sender, address(this), _amountA);
+        tokenB.approve(address(this), amountB);
         tokenB.safeTransfer(msg.sender, amountB);
+        tokenA.approve(address(this), _amountA);
+        tokenA.safeTransferFrom(msg.sender, address(this), _amountA);
         emit TokenASwappedForTokenB(msg.sender, _amountA, amountB);
     }
 
@@ -54,8 +57,10 @@ contract TokenSwap {
         if (tokenA.balanceOf(address(this)) < amountA) {
             revert TokenSwap__NotEnoughTokenA();
         }
-        tokenB.safeTransferFrom(msg.sender, address(this), _amountB);
+        tokenA.approve(address(this), amountA);
         tokenA.safeTransfer(msg.sender, amountA);
+        tokenB.approve(address(this), _amountB);
+        tokenB.safeTransferFrom(msg.sender, address(this), _amountB);
         emit TokenBSwappedForTokenA(msg.sender, _amountB, amountA);
     }
 

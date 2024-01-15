@@ -16,6 +16,11 @@ contract TokenSwapTest is Test {
         tokenSwap = new TokenSwap();
         tokenA = tokenSwap.tokenA();
         tokenB = tokenSwap.tokenB();
+        console.log("tokenA address:", address(tokenA));
+        console.log("tokenB address:", address(tokenB));
+        console.log("tokenSwap address:", address(tokenSwap));
+        console.log("tokenSwap balance tokenA:", tokenA.balanceOf(address(tokenSwap)));
+        console.log("tokenSwap balance tokenB:", tokenB.balanceOf(address(tokenSwap)));
     }
 
     function testTokenASwappedForTokenB() public {
