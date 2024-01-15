@@ -4,12 +4,9 @@ pragma solidity 0.8.23;
 import {TokenA} from "./TokenA.sol";
 import {TokenB} from "./TokenB.sol";
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
-
 contract TokenSwap {
-    // Libs
     using SafeTransferLib for TokenA;
     using SafeTransferLib for TokenB;
-
     // errors
     error TokenSwap__NotEnoughTokenA();
     error TokenSwap__NotEnoughTokenB();
@@ -25,12 +22,10 @@ contract TokenSwap {
     event TokenASwappedForTokenB(address swapper, uint256 amountA, uint256 amountB);
     event TokenBSwappedForTokenA(address swapper, uint256 amountA, uint256 amountB);
     constructor(
-        address _tokenA,
-        address _tokenB
     ) {
-        tokenA = TokenA(_tokenA);
-        tokenB = TokenB(_tokenB);
-        exchangeRate = tokenB.balanceOf(address(this)) / tokenA.balanceOf(address(this));
+        tokenA = new TokenA();
+        tokenB = new TokenB();
+        exchangeRate = 2; // 2 TokenB per TokenA
         owner = msg.sender;
     }
 
@@ -38,13 +33,13 @@ contract TokenSwap {
     /// @param _amountA The amount of tokenA to swap for tokenB.
     function swapTokenAForTokenB(uint256 _amountA) external {
         if (tokenA.balanceOf(msg.sender) < _amountA) {
-            revert TokenSwap__NotEnoughTokenB();
+            revert TokenSwap__NotEnoughTokenA();
         }
-        uint256 amountB = _amountA / exchangeRate; // In our case TokenA and TokenB have the same decimals
+        uint256 amountB = _amountA * exchangeRate; // In our case TokenA and TokenB have the same decimals
         if (tokenB.balanceOf(address(this)) < amountB) {
             revert TokenSwap__NotEnoughTokenB();
         }
-        tokenB.safeTransferFrom(msg.sender, address(this), _amountA);
+        tokenA.safeTransferFrom(msg.sender, address(this), _amountA);
         tokenB.safeTransfer(msg.sender, amountB);
         emit TokenASwappedForTokenB(msg.sender, _amountA, amountB);
     }
@@ -55,7 +50,7 @@ contract TokenSwap {
         if (tokenB.balanceOf(msg.sender) < _amountB) {
             revert TokenSwap__NotEnoughTokenB();
         }
-        uint256 amountA = _amountB * exchangeRate; // In our case TokenA and TokenB have the same decimals
+        uint256 amountA = _amountB / exchangeRate; // In our case TokenA and TokenB have the same decimals
         if (tokenA.balanceOf(address(this)) < amountA) {
             revert TokenSwap__NotEnoughTokenA();
         }
