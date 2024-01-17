@@ -3,10 +3,9 @@ pragma solidity 0.8.23;
 
 import {TokenA} from "./TokenA.sol";
 import {TokenB} from "./TokenB.sol";
-import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
+import "../lib/solady/src/utils/SafeTransferLib.sol";
+
 contract TokenSwap {
-    using SafeTransferLib for TokenA;
-    using SafeTransferLib for TokenB;
 
     // errors
     error TokenSwap__NotEnoughTokenA();
@@ -40,10 +39,8 @@ contract TokenSwap {
         if (tokenB.balanceOf(address(this)) < amountB) {
             revert TokenSwap__NotEnoughTokenB();
         }
-        tokenB.approve(address(this), amountB);
-        tokenB.safeTransfer(msg.sender, amountB);
-        tokenA.approve(address(this), _amountA);
-        tokenA.safeTransferFrom(msg.sender, address(this), _amountA);
+        SafeTransferLib.safeTransfer(address(tokenB), msg.sender, amountB);
+        SafeTransferLib.safeTransferFrom(address(tokenA), msg.sender, address(this), _amountA);
         emit TokenASwappedForTokenB(msg.sender, _amountA, amountB);
     }
 
@@ -57,10 +54,8 @@ contract TokenSwap {
         if (tokenA.balanceOf(address(this)) < amountA) {
             revert TokenSwap__NotEnoughTokenA();
         }
-        tokenA.approve(address(this), amountA);
-        tokenA.safeTransfer(msg.sender, amountA);
-        tokenB.approve(address(this), _amountB);
-        tokenB.safeTransferFrom(msg.sender, address(this), _amountB);
+        SafeTransferLib.safeTransfer(address(tokenA), msg.sender, amountA);
+        SafeTransferLib.safeTransferFrom(address(tokenB), msg.sender, address(this), _amountB);
         emit TokenBSwappedForTokenA(msg.sender, _amountB, amountA);
     }
 
@@ -69,7 +64,7 @@ contract TokenSwap {
         if (msg.sender != owner) {
             revert TokenSwap__MustBeTheOwnerToRecoverTokens();
         }
-        tokenA.safeTransfer(msg.sender, tokenA.balanceOf(address(this)));
+        SafeTransferLib.safeTransfer(address(tokenA), msg.sender, tokenA.balanceOf(address(this)));
     }
 
     /// @notice security mechanism to recover tokenB if contract under attack. The owner is a trustworthy entity.
@@ -77,6 +72,6 @@ contract TokenSwap {
         if (msg.sender != owner) {
             revert TokenSwap__MustBeTheOwnerToRecoverTokens();
         }
-        tokenB.safeTransfer(msg.sender, tokenB.balanceOf(address(this)));
+        SafeTransferLib.safeTransfer(address(tokenB), msg.sender, tokenB.balanceOf(address(this)));
     }
 }

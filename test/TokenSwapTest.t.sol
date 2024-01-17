@@ -30,6 +30,7 @@ contract TokenSwapTest is Test {
         vm.startPrank(alice);
         uint256 tokenA_balance = tokenA.balanceOf(alice);
         uint256 tokenB_balance = tokenB.balanceOf(alice);
+        tokenA.approve(address(tokenSwap), 100);
         tokenSwap.swapTokenAForTokenB(100);
         assertEq(tokenA.balanceOf(alice), tokenA_balance - 100);
         assertEq(tokenB.balanceOf(alice), tokenB_balance + 200);
@@ -39,6 +40,7 @@ contract TokenSwapTest is Test {
         vm.startPrank(alice);
         uint256 tokenA_balance = tokenA.balanceOf(alice);
         uint256 tokenB_balance = tokenB.balanceOf(alice);
+        tokenB.approve(address(tokenSwap), 100);
         tokenSwap.swapTokenBForTokenA(100);
         assertEq(tokenB.balanceOf(alice), tokenB_balance - 100);
         assertEq(tokenA.balanceOf(alice), tokenA_balance + 50);
